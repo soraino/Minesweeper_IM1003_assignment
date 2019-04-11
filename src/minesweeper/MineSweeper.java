@@ -60,7 +60,7 @@ public class MineSweeper extends JFrame {
             }
             if (input.trim().matches("\\d+")) {
                 rows = Integer.parseInt(input.trim());
-                if (rows < 1) {
+                if (rows <= 1) {
                     exitFlag = true;
                     continue;
                 }
@@ -80,7 +80,7 @@ public class MineSweeper extends JFrame {
             }
             if (input.trim().matches("\\d+")) {
                 columns = Integer.parseInt(input.trim());
-                if (columns < 1) {
+                if (columns <= 1) {
                     exitFlag = true;
                     continue;
                 }
@@ -148,7 +148,7 @@ public class MineSweeper extends JFrame {
 
     // Initialize and re-initialize a new game
     private void initGame() {
-        // Reset cells, mines, and flags
+        // Reset cells, mines, and flags        
         CellMouseListener listener = new CellMouseListener();
         
         for (int row = 0; row < rows; row++) {
@@ -165,9 +165,9 @@ public class MineSweeper extends JFrame {
             }
         }
 
+        Random rand = new Random();        
         // Set the number of mines and the mines' location
         for (int i = 0; i < numMines; i++) {
-            Random rand = new Random();
             int row = -1;
             int col = -1;
             do {
@@ -192,8 +192,6 @@ public class MineSweeper extends JFrame {
         mines = new boolean[rows][columns];
         flags = new boolean[rows][columns];
 
-        CellMouseListener listener = new CellMouseListener();
-
         cp = this.getContentPane();
         cp.removeAll();
         cp.setLayout(new GridLayout(rows, columns, 2, 2));
@@ -202,7 +200,6 @@ public class MineSweeper extends JFrame {
             for (int col = 0; col < columns; col++) {
                 btnCells[row][col] = new JButton();
                 cp.add(btnCells[row][col]);
-                btnCells[row][col].addMouseListener(listener);
             }
         }
 
@@ -340,6 +337,7 @@ public class MineSweeper extends JFrame {
                                 btnCells[row][col].setText("B");
                             }
                             btnCells[row][col].removeMouseListener(this);
+                            btnCells[row][col].setEnabled(false);
                         }// end of inner for loop
                     }// end of for loop
                     JOptionPane.showMessageDialog(null, "Game Over!", "Game Over", JOptionPane.WARNING_MESSAGE);
@@ -354,6 +352,7 @@ public class MineSweeper extends JFrame {
                         btnCells[rowSelected][colSelected].setBackground(BGCOLOR_REVEALED);
                         btnCells[rowSelected][colSelected].setText(String.valueOf(surroundingMineNum));
                         btnCells[rowSelected][colSelected].removeMouseListener(this);
+                        btnCells[rowSelected][colSelected].setEnabled(false);
                         numRevealed++;
                     }
                 }
@@ -376,6 +375,7 @@ public class MineSweeper extends JFrame {
                 for (int row = 0; row < rows; ++row) {
                     for (int col = 0; col < columns; ++col) {
                         btnCells[row][col].removeMouseListener(this);
+                        btnCells[row][col].setEnabled(false);
                     }// end of inner for loop
                 }// end of for loop
                 askContinue();
@@ -398,6 +398,7 @@ public class MineSweeper extends JFrame {
             btnCells[row][col].setForeground(FGCOLOR_REVEALED);
             btnCells[row][col].setBackground(BGCOLOR_REVEALED);
             btnCells[row][col].removeMouseListener(this);
+            btnCells[row][col].setEnabled(false);
             int surroundingMineNum = calculateMineNumber(row, col);
             if (surroundingMineNum > 0) {
                 btnCells[row][col].setText(String.valueOf(surroundingMineNum));
