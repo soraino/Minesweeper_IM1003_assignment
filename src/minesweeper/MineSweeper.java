@@ -150,6 +150,7 @@ public class MineSweeper extends JFrame {
     private void initGame() {
         // Reset cells, mines, and flags        
         CellMouseListener listener = new CellMouseListener();
+        numRevealed = 0;
         
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
