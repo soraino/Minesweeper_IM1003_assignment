@@ -2,6 +2,12 @@ package minesweeper;
 
 import java.awt.*;        // Use AWT's Layout Manager
 import java.awt.event.*;  // Use AWT's Event handlers
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Random;  // Use to generate a random int for mines position
 import javax.swing.*;     // Use Swing's Containers and Components
 
@@ -20,6 +26,7 @@ public class MineSweeper extends JFrame {
     public int rows = 0;
     public int columns = 0;
     public Container cp;
+    public ResumeData resumeData;
     // Name-constants for UI control (sizes, colors and fonts)
     public static final int CELL_SIZE = 60;  // Cell width and height, in pixels
 //    public static final int CANVAS_WIDTH = CELL_SIZE * COLS; // Game board width/height
@@ -47,6 +54,22 @@ public class MineSweeper extends JFrame {
     // Constructor to set up all the UI and game components
     public MineSweeper() {
 
+        resumeData = loadResumeData();
+        if (resumeData != null) {
+            int confirmation = JOptionPane.showConfirmDialog(
+                    null,
+                    "Do you want to play again",
+                    "Continue",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+            if (confirmation == JOptionPane.YES_OPTION) {
+                resumeGame();
+                setClosingEvent();
+                deleteResumeData();
+                return;
+            }
+            deleteResumeData();
+        }
         // Reusable input variable
         String input;
         boolean exitFlag = false;
@@ -120,7 +143,6 @@ public class MineSweeper extends JFrame {
         // for all the JButtons
         // ... [TODO 3]
         // CellMouseListener listener = new CellMouseListener();
-
         // Construct dynamic JButtons and add to the content-pane
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
@@ -137,10 +159,12 @@ public class MineSweeper extends JFrame {
         //  under this container.
         cp.setPreferredSize(new Dimension(CELL_SIZE * columns, CELL_SIZE * rows));
         pack();
-
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // handle window-close button
         setTitle("Mineswepper");
         setVisible(true);   // show it
+
+        // Add on close listener
+        setClosingEvent();
 
         // Initialize for a new game
         initGame();
@@ -151,7 +175,7 @@ public class MineSweeper extends JFrame {
         // Reset cells, mines, and flags        
         CellMouseListener listener = new CellMouseListener();
         numRevealed = 0;
-        
+
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < columns; col++) {
                 // Set all cells to un-revealed
@@ -166,7 +190,7 @@ public class MineSweeper extends JFrame {
             }
         }
 
-        Random rand = new Random();        
+        Random rand = new Random();
         // Set the number of mines and the mines' location
         for (int i = 0; i < numMines; i++) {
             int row = -1;
@@ -178,11 +202,14 @@ public class MineSweeper extends JFrame {
             mines[row][col] = true;
         }
     }
-    /***
+
+    /**
+     * *
      * Overload method to re-initialize the game
+     *
      * @param newRow
      * @param newCol
-     * @param newNumMines 
+     * @param newNumMines
      */
     private void initGame(int newRow, int newCol, int newNumMines) {
         rows = newRow;
@@ -211,6 +238,133 @@ public class MineSweeper extends JFrame {
         setTitle("Mineswepper");
         setVisible(true);
         initGame();
+    }
+
+    public final ResumeData loadResumeData() {
+        try {
+            ObjectInputStream in;
+            ResumeData loadedData;
+            try (FileInputStream fis = new FileInputStream("./GameData.ser")) {
+                in = new ObjectInputStream(fis);
+                loadedData = (ResumeData) in.readObject();
+                in.close();
+            }
+            return loadedData;
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Woops");
+        }
+
+        return null;
+    }
+
+    public void saveResumeData() {
+        try {
+            ObjectOutputStream out;
+            try (FileOutputStream fos = new FileOutputStream(new File("./GameData.ser"))) {
+                out = new ObjectOutputStream(fos);
+                out.writeObject(resumeData);
+            }
+            out.close();
+        } catch (Exception e) {
+            System.out.println("Woops");
+        }
+    }
+    
+    // this is to remove the savedData
+    public final void deleteResumeData(){
+        File file = new File("./GameData.ser");
+        boolean removed;
+        do{
+            removed = file.delete();
+        }while(!removed);
+    }
+    
+    public final void resumeGame() {
+        rows = resumeData.getRows();
+        columns = resumeData.getCols();
+
+        btnCells = new JButton[rows][columns];
+        mines = resumeData.getMines();
+        flags = resumeData.getFlags();
+        numMines = resumeData.getNumMine();
+        numRevealed = resumeData.getNumRevealed();
+
+        cp = this.getContentPane();           // JFrame's content-pane
+        cp.setLayout(new GridLayout(rows, columns, 2, 2)); // in 10x10 GridLayout
+
+        CellMouseListener listener = new CellMouseListener();
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < columns; col++) {
+                btnCells[row][col] = new JButton();
+                cp.add(btnCells[row][col]);
+                btnCells[row][col].setFont(FONT_NUMBERS);
+                if (resumeData.getBtnOpened()[row][col]) {
+                    btnCells[row][col].setEnabled(false);  // enable button
+                    btnCells[row][col].setForeground(FGCOLOR_REVEALED);
+                    btnCells[row][col].setBackground(BGCOLOR_REVEALED);
+                } else {
+                    btnCells[row][col].addMouseListener(listener);
+                    btnCells[row][col].setEnabled(true);  // enable button
+                    btnCells[row][col].setForeground(FGCOLOR_NOT_REVEALED);
+                    btnCells[row][col].setBackground(BGCOLOR_NOT_REVEALED);
+                }
+                btnCells[row][col].setText(resumeData.getBtnText()[row][col]);
+            }
+        }
+
+        // Set the size of the content-pane and pack all the components
+        //  under this container.
+        cp.setPreferredSize(new Dimension(CELL_SIZE * columns, CELL_SIZE * rows));
+        pack();
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // handle window-close button
+        setTitle("Mineswepper");
+        setVisible(true);   // show it
+    }
+
+    public final void setClosingEvent() {
+        this.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+
+                int confirmation = JOptionPane.showConfirmDialog(
+                        null,
+                        "Do you want to save game?",
+                        "Save Game",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+                
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    resumeData = new ResumeData();
+                    resumeData.setCols(columns);
+                    resumeData.setRows(rows);
+                    resumeData.setMines(mines);
+                    resumeData.setNumMine(numMines);
+                    resumeData.setFlags(flags);
+                    resumeData.setNumRevealed(numRevealed);
+
+                    String[][] btnText = new String[rows][columns];
+                    boolean[][] btnOpened = new boolean[rows][columns];
+                    for (int row = 0; row < rows; row++) {
+                        for (int col = 0; col < columns; col++) {
+                            JButton currBtn = btnCells[row][col];
+                            if (currBtn.getBackground() == BGCOLOR_NOT_REVEALED && currBtn.getForeground() == FGCOLOR_NOT_REVEALED) {
+                                btnOpened[row][col] = false;
+                            } else if (currBtn.getBackground() == BGCOLOR_REVEALED && currBtn.getForeground() == FGCOLOR_REVEALED) {
+                                btnOpened[row][col] = true;
+                            }
+                            btnText[row][col] = currBtn.getText();
+                        }
+                    }
+                    resumeData.setBtnOpened(btnOpened);
+                    resumeData.setBtnText(btnText);
+
+                    saveResumeData();
+                }
+            }
+        });
     }
 
     // The entry main() method
@@ -313,14 +467,16 @@ public class MineSweeper extends JFrame {
             JButton source = (JButton) e.getSource();
 
             // refactored your code here to make it more neater
-            outerloop:
+            // didn't knew this was a thing in programming until I looked it up like even JS has a similar implementation
+            // https://stackoverflow.com/questions/886955/how-do-i-break-out-of-nested-loops-in-java
+            rowloop:
             for (int row = 0; row < rows; ++row) {
                 for (int col = 0; col < columns; ++col) {
                     if (source == btnCells[row][col]) {
                         rowSelected = row;
                         colSelected = col;
                         // break both inner/outer loops
-                        break outerloop;
+                        break rowloop;
                     }
                 }
             }
@@ -382,11 +538,14 @@ public class MineSweeper extends JFrame {
                 askContinue();
             }
         }
-        /***
-         * recursive method to open all the blank location of the mines
-         * the algorithm is called flood filled
+
+        /**
+         * *
+         * recursive method to open all the blank location of the mines the
+         * algorithm is called flood filled
+         *
          * @param row
-         * @param col 
+         * @param col
          */
         private void revealBlanks(int row, int col) {
             if (row < 0 || row >= rows || col < 0 || col >= columns) {
