@@ -18,7 +18,7 @@ import javax.swing.*;     // Use Swing's Containers and Components
  * mine.
  */
 @SuppressWarnings("serial")
-public class MineSweeper extends JFrame {
+public final class MineSweeper extends JFrame {
 
     // Name-constants for the game properties
 //    public static final int ROWS = 10;      // number of cells
@@ -75,7 +75,12 @@ public class MineSweeper extends JFrame {
         boolean exitFlag = false;
         // make a dynamic game modifier 
         do {
-            input = JOptionPane.showInputDialog(null, "How many rows would you want your mine sweeper have? (enter an integer value > 1)", "Message", JOptionPane.QUESTION_MESSAGE);
+            input = JOptionPane.showInputDialog(
+                    null,
+                    "How many rows would you want your mine sweeper have? (enter an integer value > 1)",
+                    "Message",
+                    JOptionPane.QUESTION_MESSAGE
+            );
             // Some basic regex to detect digits and only degits since Java doesn't have a type safe parsing
             if (input == null) {
                 System.exit(0);
@@ -96,7 +101,12 @@ public class MineSweeper extends JFrame {
         // reset the value of the flag for reuse
         exitFlag = false;
         do {
-            input = JOptionPane.showInputDialog(null, "How many columns would you want your mine sweeper have? (enter an integer value > 1)", "Message", JOptionPane.QUESTION_MESSAGE);
+            input = JOptionPane.showInputDialog(
+                    null,
+                    "How many columns would you want your mine sweeper have? (enter an integer value > 1)",
+                    "Message",
+                    JOptionPane.QUESTION_MESSAGE
+            );
             if (input == null) {
                 System.exit(0);
                 return;
@@ -115,7 +125,11 @@ public class MineSweeper extends JFrame {
 
         exitFlag = false;
         do {
-            input = JOptionPane.showInputDialog(null, "How many mines do you want to have? (enter an integer value > 0 and <= " + ((columns * rows) - 1) + ")", "Message", JOptionPane.QUESTION_MESSAGE);
+            input = JOptionPane.showInputDialog(
+                    null,
+                    "How many mines do you want to have? (enter an integer value > 0 and <= " + ((columns * rows) - 1) + ")",
+                    "Message",
+                    JOptionPane.QUESTION_MESSAGE);
             if (input == null) {
                 System.exit(0);
                 return;
@@ -205,7 +219,7 @@ public class MineSweeper extends JFrame {
 
     /**
      * *
-     * Overload method to re-initialize the game
+     * Overload method to re-initialize the game with new difficulty
      *
      * @param newRow
      * @param newCol
@@ -240,6 +254,11 @@ public class MineSweeper extends JFrame {
         initGame();
     }
 
+    /**
+     * Use to load the previous game data
+     *
+     * @return ResumeData
+     */
     public final ResumeData loadResumeData() {
         try {
             ObjectInputStream in;
@@ -257,6 +276,9 @@ public class MineSweeper extends JFrame {
         return null;
     }
 
+    /**
+     * to save the current game data
+     */
     public void saveResumeData() {
         try {
             ObjectOutputStream out;
@@ -269,16 +291,21 @@ public class MineSweeper extends JFrame {
             System.out.println("Woops");
         }
     }
-    
-    // this is to remove the savedData
-    public final void deleteResumeData(){
+
+    /**
+     * this is to remove the savedData
+     */
+    public final void deleteResumeData() {
         File file = new File("./GameData.ser");
         boolean removed;
-        do{
+        do {
             removed = file.delete();
-        }while(!removed);
+        } while (!removed);
     }
-    
+
+    /**
+     * This is to load the layout of the previous game
+     */
     public final void resumeGame() {
         rows = resumeData.getRows();
         columns = resumeData.getCols();
@@ -323,7 +350,7 @@ public class MineSweeper extends JFrame {
         setVisible(true);   // show it
     }
 
-    public final void setClosingEvent() {
+    public void setClosingEvent() {
         this.addWindowListener(new WindowAdapter() {
 
             @Override
@@ -335,7 +362,7 @@ public class MineSweeper extends JFrame {
                         "Save Game",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE);
-                
+
                 if (confirmation == JOptionPane.YES_OPTION) {
                     resumeData = new ResumeData();
                     resumeData.setCols(columns);
@@ -375,15 +402,28 @@ public class MineSweeper extends JFrame {
 
     //ask the user if they want to replay the game with the same difficulty or the same
     public void askContinue() {
-        int confirmation = 2;
-        confirmation = JOptionPane.showConfirmDialog(null, "Do you want to play again", "Continue", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (confirmation == 0) {
-            confirmation = 2;
-            confirmation = JOptionPane.showConfirmDialog(null, "Do you want to change the difficulty?", "Too difficult?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-            if (confirmation == 1) {
+        int confirmation = JOptionPane.showConfirmDialog(
+                null,
+                "Do you want to play again",
+                "Continue",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirmation == JOptionPane.YES_OPTION) {
+            confirmation = JOptionPane.showConfirmDialog(
+                    null,
+                    "Do you want to change the difficulty?",
+                    "Too difficult?",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (confirmation == JOptionPane.NO_OPTION) {
                 initGame();
                 return;
-            } else if (confirmation == 0) {
+            } else if (confirmation == JOptionPane.CANCEL_OPTION) {
+                System.exit(0);
+            } else if (confirmation == JOptionPane.YES_OPTION) {
                 String input;
                 int newRow = -1;
                 int newCol = -1;
@@ -391,7 +431,12 @@ public class MineSweeper extends JFrame {
                 boolean exitFlag = false;
                 // make a dynamic game modifier 
                 do {
-                    input = JOptionPane.showInputDialog(null, "How many rows would you want your mine sweeper have? (enter an integer value > 1)", "Message", JOptionPane.QUESTION_MESSAGE);
+                    input = JOptionPane.showInputDialog(
+                            null,
+                            "How many rows would you want your mine sweeper have? (enter an integer value > 1)",
+                            "Message",
+                            JOptionPane.QUESTION_MESSAGE
+                    );
                     // Some basic regex to detect digits and only deguts since Java doesn't have a type safe parsing
                     if (input == null) {
                         System.exit(0);
@@ -412,7 +457,12 @@ public class MineSweeper extends JFrame {
                 // reset the value of the flag for reuse
                 exitFlag = false;
                 do {
-                    input = JOptionPane.showInputDialog(null, "How many columns would you want your mine sweeper have? (enter an integer value > 1)", "Message", JOptionPane.QUESTION_MESSAGE);
+                    input = JOptionPane.showInputDialog(
+                            null,
+                            "How many columns would you want your mine sweeper have? (enter an integer value > 1)",
+                            "Message",
+                            JOptionPane.QUESTION_MESSAGE
+                    );
                     if (input == null) {
                         System.exit(0);
                         return;
@@ -431,7 +481,12 @@ public class MineSweeper extends JFrame {
 
                 exitFlag = false;
                 do {
-                    input = JOptionPane.showInputDialog(null, "How many mines do you want to have? (enter an integer value > 0 and <= " + ((newCol * newRow) - 1) + ")", "Message", JOptionPane.QUESTION_MESSAGE);
+                    input = JOptionPane.showInputDialog(
+                            null,
+                            "How many mines do you want to have? (enter an integer value > 0 and <= " + ((newCol * newRow) - 1) + ")",
+                            "Message",
+                            JOptionPane.QUESTION_MESSAGE
+                    );
                     if (input == null) {
                         System.exit(0);
                         return;
@@ -497,7 +552,12 @@ public class MineSweeper extends JFrame {
                             btnCells[row][col].setEnabled(false);
                         }// end of inner for loop
                     }// end of for loop
-                    JOptionPane.showMessageDialog(null, "Game Over!", "Game Over", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Game Over!",
+                            "Game Over",
+                            JOptionPane.WARNING_MESSAGE
+                    );
                     askContinue();
                 } else {
                     int surroundingMineNum = calculateMineNumber(rowSelected, colSelected);
@@ -528,7 +588,12 @@ public class MineSweeper extends JFrame {
             }
             // [TODO 7] Check if the player has won, after revealing this cell
             if (numRevealed == (rows * columns) - numMines) {
-                JOptionPane.showMessageDialog(null, "Congratulations!, you've finished the game", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Congratulations!, you've finished the game",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
                 for (int row = 0; row < rows; ++row) {
                     for (int col = 0; col < columns; ++col) {
                         btnCells[row][col].removeMouseListener(this);
